@@ -34,7 +34,8 @@ urlpatterns =[
     path('log_out', views.log_out, name="log_out"),
     path('delete_prob_w_c/<int:pk>', views.delete_prob_w_c, name="delete_prob_w_c"),
     path('searching', views.searching,name ="searching" ),
-    path("normal_problems_filtered", views.normal_problems_filtered, name="normal_problems_filtered")
+    path("normal_problems_filtered", views.normal_problems_filtered, name="normal_problems_filtered"),
+    path("code_playground", views.code_playground, name="code_playground"),
 
     
     

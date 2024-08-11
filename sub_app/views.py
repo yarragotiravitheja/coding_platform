@@ -35,6 +35,11 @@ def home(request):
 
 
 
+def code_playground(request):
+    return render(request, "code_playground.html")
+
+
+
 # Configure logging
 logger = logging.getLogger(__name__)
 
@@ -45,7 +50,7 @@ def run_code(request):
         lang = request.POST.get('lang')
         code = request.POST.get('code_')
         stdin = request.POST.get('Input', '')
-        print(stdin)
+        print(stdin.encode('utf-8'))
 
         BASE = Path(path.abspath(__file__)).parent.parent
         filename = f'test_{uuid.uuid4()}.{lang}'
@@ -57,7 +62,8 @@ def run_code(request):
         try:
             if lang == "PYTHON":
                 output = subprocess.run(["python", fileloc], input=stdin.encode('utf-8'), timeout=5,
-                                        capture_output=True, text=True)
+                                        capture_output=True)
+                print(output)
             elif lang == "CPP14":
                 compile_output = subprocess.run(["g++", fileloc, "-o", "a.out"], timeout=5, capture_output=True,
                                                 text=True)
@@ -85,19 +91,20 @@ def run_code(request):
             remove(fileloc)
             if path.exists('./a.out'):
                 remove('./a.out')
-
+            stdout = output.stdout.decode('utf-8')
+            stderr = output.stderr.decode('utf-8')
             # Log output and errors for debugging
-            print(f"STDOUT: {output.stdout}")
-            print(f"STDERR: {output.stderr}")
+            print(f"STDOUT: {stdout}")
+            print(f"STDERR: {stderr}")
             print(f"Return Code: {output.returncode}")
 
             if output.returncode != 0:
-                error_output = output.stderr or output.stdout
+                error_output = stderr or stdout
                 error_lines = "\n".join(error_output.splitlines()[2:])
                 return JsonResponse({'run_status': {'status': 'CE', 'output_html': error_lines.replace('\n', '<br>')}},
                                     status=400)
 
-            return JsonResponse({'run_status': {'status': 'AC', 'output_html': output.stdout.replace('\n', '<br>')}})
+            return JsonResponse({'run_status': {'status': 'AC', 'output_html': stdout.replace('\n', '<br>')}})
 
         except Exception as e:
             error_message = str(e)
